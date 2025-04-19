@@ -120,8 +120,8 @@ function setupModal() {
     });
 }
 
-function RenderContactPage() {      
-    document.querySelector('main').innerHTML = ` 
+function RenderContactPage() {
+    document.querySelector('main').innerHTML = `
         <h1 class="title">Contact with me</h1> 
         <form id="contact-form"> 
             <label for="name">Name:</label> 
@@ -133,20 +133,31 @@ function RenderContactPage() {
             <label for="message">Message:</label> 
             <textarea id="message" name="message" required></textarea> 
 
-            <button class="g-recaptcha" data-sitekey="6LeMfR0rAAAAAF3ikwaQlBAIUqv1Bn3O_jLctWnp" type="submit">Send</button> 
+            <div id="recaptcha-container"></div>
+
+            <button type="submit">Send</button> 
         </form> 
     `;
 
     const form = document.getElementById('contact-form');
 
+    // Inicjalizuj reCAPTCHA dopiero po załadowaniu formularza
+    if (typeof grecaptcha !== 'undefined') {
+        grecaptcha.render('recaptcha-container', {
+            sitekey: '6Lfafh0rAAAAANvF4ZvQw3vy5B-DixopnAOI5JfD'
+        });
+    } else {
+        console.error('reCAPTCHA script not loaded.');
+    }
+
     form.addEventListener('submit', (event) => {
         event.preventDefault();
 
-        // Prosta walidacja
+        const recaptchaResponse = grecaptcha.getResponse();
+
         const name = form.name.value.trim();
         const email = form.email.value.trim();
         const message = form.message.value.trim();
-        const recaptchaResponse = grecaptcha.getResponse();
 
         if (!name || !email || !message) {
             alert('Please fill in all fields.');
@@ -158,12 +169,11 @@ function RenderContactPage() {
             return;
         }
 
-        if (recaptchaResponse.length === 0) {
+        if (!recaptchaResponse || recaptchaResponse.length === 0) {
             alert('Please verify you are not a robot.');
             return;
         }
 
-        // Wszystko OK
         alert('Form submitted!');
         form.reset();
         grecaptcha.reset();
@@ -171,10 +181,10 @@ function RenderContactPage() {
 }
 
 function validateEmail(email) {
-    // Prosty regex na e-mail
-    const re = /^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/;
+    const re = `/^[^\s@]+@[^\s@]+\.[^\s@]+$/`;
     return re.test(email);
 }
+
 
 document.getElementById('theme-toggle').addEventListener('click', () => { 
     document.body.classList.toggle('dark-mode'); 
